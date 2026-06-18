@@ -49,7 +49,7 @@ The raw data sources are:
 - GTFS data Luxembourg (Spans the whole country)
 - Commerical land (Preprocesed, needed for BD classification)
 - VDL quarters polygons (used in BD classification)
-- AVl and ux tram lines (used in mapping)
+- AVl and Luxtram lines (used in mapping)
 - OSM walking network (extracted using osmnx)
 
 ## Requirements
