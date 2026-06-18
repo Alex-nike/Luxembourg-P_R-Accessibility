@@ -1,16 +1,32 @@
 
 # Luxembourg P+R accessibility project
 
+## Table of contents
+
+- [Introduction](#introduction)
+- [Methodology](#methodology)
+  - [Data Preparation](#data-preparation)
+  - [Network Formation](#network-formation)
+  - [Network Analysis](#network-analysis)
+- [Results](#results)
+- [Discussion](#discussion)
+- [Limitations](#limitations)
+- [Future Research](#future-research)
+- [Conclusion](#conclusion)
+- [Citations](#citations)
+
+
+
 ## Introduction
 
 ---
-Over the past decade, Luxembourg City has become a major European hub for finance, technology, and professional services. As the city grows, so too do its mobility demands. However, Luxembourg City is geographically small, making it particularly vulnerable to traffic congestion, especially during peak commuting periods. In March 2020, the government introduced free public transport nationwide to reduce the aforementioned congestion [1]. Despite this, a significant proportion of workers continue to commute by car, particularly cross-border commuters who live outside the city. According to the National Mobility Plan 2035 (NPM 2035), the majority of trips longer than 15 km are still undertaken by private vehicles [2]. As population and employment continue to grow, so too will congestion.
+Over the past decade, Luxembourg City has become a major European hub for finance, technology, and professional services. As the city grows, so too do its mobility demands. However, Luxembourg City is geographically small, making it particularly vulnerable to traffic congestion, especially during peak commuting periods. In March 2020, the government introduced free public transport nationwide to reduce the aforementioned congestion [^1]. Despite this, a significant proportion of workers continue to commute by car, particularly cross-border commuters who live outside the city. According to the National Mobility Plan 2035 (NPM 2035), the majority of trips longer than 15 km are still undertaken by private vehicles [^2]. As population and employment continue to grow, so too will congestion.
 
 One strategy to mitigate this congestion is the use of Park-and-Ride (P+R) facilities. These facilities allow commuters to park their vehicles in the suburban ring and finish their commute using public transport. The effectiveness of a P+R facility depends on its capacity but more importantly on its convenience. If these facilities are not well connected to important districts, commuters may choose to drive directly to their destination instead. Consequently, understanding the accessibility provided by existing P+R facilities is key to handling congestion.
 
 This project evaluates the accessibility of six major P+R facilities within Luxembourg City. The primary research question is: **How long does it take to travel from a P+R facility to a business district using public transport?** A secondary objective is to determine how the accessibility of different P+R facilities can be quantitatively and qualitatively assessed.
 
-To answer these questions, a multimodal public transport network was constructed using GTFS public transport data and OpenStreetMap walking network data. Major business districts were identified using land-use information, while P+R facilities were derived from OpenStreetMap data tags. Frequency-weighted shortest-path analysis was then used to estimate travel times between P+R facilities and business districts. The results are presented through travel-time matrices, accessibility rankings, and isochrone maps that highlight the spatial distribution of accessibility across Luxembourg City. In addition, the public transport network is validated in comparison to Google Maps and Mobiliteit [3],[4].
+To answer these questions, a multimodal public transport network was constructed using GTFS public transport data and OpenStreetMap walking network data. Major business districts were identified using land-use information, while P+R facilities were derived from OpenStreetMap data tags. Frequency-weighted shortest-path analysis was then used to estimate travel times between P+R facilities and business districts. The results are presented through travel-time matrices, accessibility rankings, and isochrone maps that highlight the spatial distribution of accessibility across Luxembourg City. In addition, the public transport network is validated in comparison to Google Maps and Mobiliteit [^3],[^4].
 
 ## Methodology
 
@@ -20,15 +36,19 @@ To answer these questions, a multimodal public transport network was constructed
 
 There are three main data sources used in forming the multimodal network. These are the GTFS data, the P+R stop data and the commercial district data. All mapping data is saved in EPSG:4326/WGS 84 while analysis data is saved in EPSG:2169/LUREF.
 
-The GTFS data was harvested from the Lux Open Data Portal [5]. The data was first cleaned and validated. Next, it was filtered. Only AVL buses and the LuxTram line were considered and the time frame was restricted to 7-9 AM on weekdays. We assume that the travel time is symmetrical with evening peak hours of 5 to 7 PM. Afterward, bus line level headways were considered. This means that each stop and bus line has its own headway time. This was calculated using the following formula: $$avg\_headway = time\_window/n\_departures$$
+The GTFS data was harvested from the Lux Open Data Portal [^5]. The data was first cleaned and validated. Next, it was filtered. Only AVL buses and the LuxTram line were considered and the time frame was restricted to 7-9 AM on weekdays. We assume that the travel time is symmetrical with evening peak hours of 5 to 7 PM. Afterward, bus line level headways were considered. This means that each stop and bus line has its own headway time. This was calculated using the following formula: 
+
+`avg_headway = time_window / n_departures`
 
 where time_window is the total amount of time the departures are filtered by. In this case 2 hours. n_departures are the total number of stop events within that period. This is the number of all departure times within the time window for a route. The waiting time is hence avg_headway/2 for each route, assuming the commuter must wait on average half the headway time.
 
 Next, the P+R stop data was prepared. First, the AVL stops were loaded in, taken from the prepared GTFS data. Then, they were used to create a bounding box. This bounding box was used to find all OSM elements within the AVL coverage area that had the park and ride tag and were polygons — parking lots. Next, a geodataframe was created using a 250m centroid buffer from each P+R facility and spatially joined to the AVL stops. This means that only the PT stops within 250 meters of the P+R lots were used for this analysis.
 
-Last, the commercial stops were prepared. Before using python, Overpass was used to find all commercial or retail land within the municipality of Luxembourg. This land was smoothed out and turned into a multipolygon using QGIS. This is the commercial land geopackage in the data folder. Additionally, quarter polygon data can be found for the municipality of Luxembourg in the open data portal [6].
+Last, the commercial stops were prepared. Before using python, Overpass was used to find all commercial or retail land within the municipality of Luxembourg. This land was smoothed out and turned into a multipolygon using QGIS. This is the commercial land geopackage in the data folder. Additionally, quarter polygon data can be found for the municipality of Luxembourg in the open data portal [^6].
 
-To find the business districts, we calculate the coverage ratio for each quarter. The coverage ratio is expressed in this equation: $$cov\_ratio = comm\_area/quarter\_area$$
+To find the business districts, we calculate the coverage ratio for each quarter. The coverage ratio is expressed in this equation: 
+
+`cov_ratio = comm_area\quarter_area`
 
 where the comm_area is the total commercial land area in a quarter and the quarter_area is the total area of the quarter. Next, we sort the result dataframe by the top five coverage ratios and select them. This was done since the top three are in the city center itself. To account for the two emerging districts, the top five were chosen. In our analysis, these correspond to the BD (Gare, Grund and Ville Haute) but also the two newer commercial centers of Kirchberg and Cloche D'or in Gasperich. To find the stops, we filter the comemrical land to the top five quarters. Similar to the P+R stop method, we take a 100m buffer of this land then spatially join it to the stops. Note, that this includes stops within commercial land.
 
@@ -39,7 +59,8 @@ Once all the data is prepared, the network can be formed. It has three layers: t
 The walking network is harvested from OSM data. The span was found similar to that of the P+R where a bounding box was created 300 meters around the AVL stops and the walking network was taken as the longest connected network in that box. The weight is given by length over the walking speed, given in minutes. The walking speed is 1.4 m/s or about 5 km/h.
 
 Next, the PT network is formed. This has two node layers and three edge layers. The two node layers are the stop layer and the stop-route layer. The stop layer connects to the walking network and acts as an interface, allowing the commuter to access many bus lines from one node. The stop-route layer allows commuters on the stop node to choose the quickest bus line. To go from a stop node to a stop-route node, there is an edge with weight equal to that of the waiting time – avg_headway/2. The wait time is estimated to be five minutes if there is no headway found in the data. The edge that goes the opposite direction has no weight since alight time is assumed negligible – the passenger gets off almost instantly. Finally, we have the stop-route to stop-route edges which are the main edges. They derive their weight from the stop_times table in the following expression: 
-$$weight = arrival$\_$time$\_$next$\_$stop  - departure\_time$$.
+
+`weight = arrival_time_next_stop - departure_time`
 
 Frequency weighting was used to accurately model departure time intervals. Depending on how often a stop is serviced by a bus, a commuter is more likely to use the stop. As a consequence, if a P+R stop has low frequency it will generally be less connected, even if travel time between the stop and the BD stop is low. The waiting time added accounts for this uncertainty.
 
@@ -55,7 +76,7 @@ To get a more holistic metric, means are taken over all BDs. These statistics ar
 
 Similarly, we can take these means and rank them from slowest to fastest. Then, we can take the mean of each rank to get an overall mean ranking for these facilities. Finally, we can compare the number of mean travel times under an accessibility threshold. In this case it's 25 minutes. To understand the 25 minute threshold, we must understand the size of the city. Though Luxembourg is not circular, it is roughly about 10 km in diameter when approximating. Making sure to take into account the fact that roads wind, the actual distance traveled will be somewhere around 10-15 km. Given traffic and stop lights, the average speed should be a bit faster than a bike, around 30 km/h. Therefore, an average travel time lies around 20 to 30 minutes. To take this all into account, a good approximation for the mean time is 25 minutes. Therefore, accessible P+R facilities are those that can get to BDs under this mean time. We have three metrics to measure the accessibility of a P+R facility, two qualitative and one quantitative.
 
-Finally, to get a feel for each facility, Isochrone maps were generated. Each isochrone has 4 bands: 0-15, 15-20, 20-30 and 30-45 minutes. The maps themselves contain the P+R stop centroids, the top five business districts and the AVL lines themselves which were acquired from Geoportail [7].
+Finally, to get a feel for each facility, Isochrone maps were generated. Each isochrone has 4 bands: 0-15, 15-20, 20-30 and 30-45 minutes. The maps themselves contain the P+R stop centroids, the top five business districts and the AVL lines themselves which were acquired from Geoportail [^7].
 
 To validate the model, five test journeys were performed to check whether the time taken was consistent enough with open access models. The journeys were selected such that they covered a robust set of circumstances such as: from city limit to city limit journeys; medium distance journeys; and tram heavy journeys. The two open access models used were Google Maps and Mobiliteit, the government transport agency app. These were chosen since they were the two most commonly used apps when dealing with public transport journey planning in Luxembourg. Times were extracted at 8:00 AM on a weekday for the journey planner. The shortest travel time was used. The absolute value between my model and the open access model was computed for each journey. Furthermore, the mean absolute error (MAE) was found for each platform. Our model is valid if the MAE < 5 minutes, the default waiting time.
 
@@ -67,7 +88,7 @@ The following section collects the results of this analysis. The first figure is
 
 ### P+R to BD mean travel time heatmap
 
-![Figure 1](Figures/heatmap.png)
+![Heatmap](/outputs/figures/heatmap.png)
 
 *Figure 1. This heatmap shows the mean shortest travel time from each P+R facility to each business district (BD). For example, the top left square tells us that it takes on average 5 minutes to get from the P+R stop to a BD stop in the Gare district.*
 
@@ -77,7 +98,7 @@ There are several interesting things to note from this figure. First, Gare and H
 
 ### Mean BD travel time chart
 
-![Figure 2](Figures/barchart.png)
+![Mean BD Travel Time](/outputs/figures/barchart.png)
 
 *Figure 2. This chart shows the average time to a BD for every P+R facility for each of three statistics: min, mean and max*
 
@@ -117,14 +138,14 @@ We can see similar trends from Figure 1, expressed as averages here. We can see 
 
 ### Number of districts reachable under 25 minutes
 
-| P+R facility |   $T_{mean}$ < 25 min       |
-| -------- | -------- | 
-|Gare    | 4/5   | 
-| Hollerich   | 4/5  | 
-| Howald   | 3/5   | 
-| Stadion   | 2/5  | 
-| Héienhaff    | 1/5    | 
-| Kockelscheuer   | 1/5   | 
+| P+R Facility | Business Districts Reachable (<25 min) |
+|-------------|-----------------------------------------|
+| Gare | 4 / 5 |
+| Hollerich | 4 / 5 |
+| Howald | 3 / 5 |
+| Stadion | 2 / 5 |
+| Héienhaff | 1 / 5 |
+| Kockelscheuer | 1 / 5 |
 
 **Table 3.** Number of districts that take less than 25 minutes to reach on average.
 
@@ -136,7 +157,7 @@ As expected, the Gare and Hollerich are first and the Kockelscheuer and Héienha
 
 ### Map 1: Howald Isochrone map
 
-![Map 1](Isochrone%20maps/Howald.png)
+![Howald Isochrone Map](/outputs/maps/Howald.png)
 
 *Map 1. For simplicity, the Howald isochrone map is taken as an example map since it sits in the middle of the pack. All areas farther than 45 minutes are unshaded.*
 
@@ -163,7 +184,7 @@ The Mean Absolute Error (MAE) for Google maps with respect to the model is 2.72 
 ### Results Summary
 
 
-| Facility | Mean BD Time (min) | Overall Rank | Districts Reachable <25 min |
+| Facility | Mean BD Time (min) | Overall Rank |Business Districts Reachable (<25 min) |
 |-----------|-------------------:|-------------:|----------------------------:|
 | Gare | 14.1 | 1 | 4/5 |
 | Hollerich | 18.2 | 2 | 4/5 |
@@ -180,11 +201,11 @@ The Mean Absolute Error (MAE) for Google maps with respect to the model is 2.72 
 
 Regarding the travel time based results, P+R facilities outside the center are specialized. They are made to access only nearby districts, like Héienhaff for Kirchberg. Likewise, central facilities have great accessibility. Central facilities are generally better due to better connectivity like how Gare has about half of all AVL buses running through it – the other half running through Hamillius in Ville Haute. This better connectivity leads to shorter mean times. Likewise, the poor connectivity on the peripherals is due to the lack of connections and hence the increase in waiting time for transfers.
 
-Noting the gaps in coverage, Bonnevoie and Howald have already been addressed. With the tram extension to Stadion going through the two districts as well as Cloche d'Or, the renovated districts were built with accessibility in mind. When looking at the PNM 2035, we see a couple important areas that are expected to be expanded [2]. The tram network is to be expanded with stops in: Hollerich, connecting to the P+R facility there; northern Kirchberg, where there were accessibility holes; and Strassen. This suggests that the Hollerich and Strassen areas are to be developed next. Indeed a Nei-Hollerich district is planned to be built around Hollerich and Belair as well [8].
+Noting the gaps in coverage, Bonnevoie and Howald have already been addressed. With the tram extension to Stadion going through the two districts as well as Cloche d'Or, the renovated districts were built with accessibility in mind. When looking at the PNM 2035, we see a couple important areas that are expected to be expanded [^2]. The tram network is to be expanded with stops in: Hollerich, connecting to the P+R facility there; northern Kirchberg, where there were accessibility holes; and Strassen. This suggests that the Hollerich and Strassen areas are to be developed next. Indeed a Nei-Hollerich district is planned to be built around Hollerich and Belair as well [^8].
 
 Looking at the P+R portion of the plan, there are several important things to note. The directive is multimodality so, the intention is that bus corridors and tram stops are connected to the lots. As well, the LuxExpo lot is named as a P+R facility even though it is not labeled as such. A new P+R facility is planned to open, near the CHL in North Belair, called P+R Ouest (West). This should cover the majority of the new developed area, allowing new business districts in the east as the city continues to sprawl.
 
-Another interesting thing to note is the lack of P+R stops in the south-east of the city. The closest facility is the Howald lot. Why doesn't the city build up that area? The main issue is terrain. Since Kirchberg is a plateau, it was easy to develop; however, due to topological considerations, areas outside of the plateaus are considerably harder to develop. Furthermore, that land is owned by farmers so to develop that land requires far too much logistics to be practical. On top of that, ecological concerns and preserving a green belt are also considered essential for the city [9]. Finally, Luxembourg has a policy of redevelopment where existing land is renovated, like that in Cloche D'or. Therefore, adding new stops to renovated districts is more efficient than sprawling outwards [10],[11].
+Another interesting thing to note is the lack of P+R stops in the south-east of the city. The closest facility is the Howald lot. Why doesn't the city build up that area? The main issue is terrain. Since Kirchberg is a plateau, it was easy to develop; however, due to topological considerations, areas outside of the plateaus are considerably harder to develop. Furthermore, that land is owned by farmers so to develop that land requires far too much logistics to be practical. On top of that, ecological concerns and preserving a green belt are also considered essential for the city [^9]. Finally, Luxembourg has a policy of redevelopment where existing land is renovated, like that in Cloche D'or. Therefore, adding new stops to renovated districts is more efficient than sprawling outwards [^10],[^11].
 
 
 ### Limitations
@@ -207,24 +228,25 @@ In this project, the question of "How long does it take to travel from a P+R fac
 
 ## Citations
 
-[1] <https://transports.public.lu/en/plus/faq/gratuite-transports-publics.html>
+[^1]: Free Public Transport in Luxembourg. https://transports.public.lu/en/plus/faq/gratuite-transports-publics.html
 
-[2] <https://gouvernement.lu/en/dossiers/2022/pnm2035.html>
+[^2]: National Mobility Plan 2035. https://gouvernement.lu/en/dossiers/2022/pnm2035.html
 
-[3] <https://maps.app.goo.gl/9B3GYSQ1vSn3spZcA>
+[^3]: Google Maps. https://maps.app.goo.gl/9B3GYSQ1vSn3spZcA
 
-[4] <https://www.mobiliteit.lu/en/>
+[^4]: Mobiliteit Luxembourg. https://www.mobiliteit.lu/en/
 
-[5] <https://data.public.lu/fr/datasets/horaires-et-arrets-des-transport-publics-gtfs/>
+[^5]: GTFS Public Transport Dataset. https://data.public.lu/fr/datasets/horaires-et-arrets-des-transport-publics-gtfs/
 
-[6] <https://data.public.lu/en/datasets/carte-topographique-quartiers-de-la-ville-de-luxembourg/>
+[^6]: Luxembourg City Quarter Boundaries. https://data.public.lu/en/datasets/carte-topographique-quartiers-de-la-ville-de-luxembourg/
 
-[7] <https://data.public.lu/en/datasets/transport-en-commun/>
+[^7]: Public Transport Route Data. https://data.public.lu/en/datasets/transport-en-commun/
 
-[8] <https://www.neihollerich.lu/fr/>
+[^8]: Nei Hollerich Development. https://www.neihollerich.lu/fr/
 
-[9] <https://sustainlux.lu/en/initiative/the_green_belt>
+[^9]: Luxembourg Green Belt Initiative. https://sustainlux.lu/en/initiative/the_green_belt
 
-[10] <https://www.vdl.lu/en/topic/urban-development-and-housing>
+[^10]: VDL Urban Development. https://www.vdl.lu/en/topic/urban-development-and-housing
 
-[11]<https://www.vdl.lu/en/city/projects-and-commitments/urban-development/concept-and-objectives>
+[^11]: Urban Development Objectives. https://www.vdl.lu/en/city/projects-and-commitments/urban-development/concept-and-objectives
+
